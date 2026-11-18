@@ -29,41 +29,31 @@ class HelpPage(QWidget):
         # TODO maybe split into different subsections with headings
         s = "&nbsp;" # html space
         d = ("<p style=line-height:140%>"
-             "If you are using a custom icon pack, navigate to the Settings page. Here you can browse for your Dead by "
-             "Daylight installation (specifically, the folder containing your icons).<br>"
-             "In the Preferences page, you can set up preferences for what add-ons, items, offerings and perks "
-             "you would like to obtain from the bloodweb. Each set of preferences can be "
-             "stored in a different profile, for convenient switching as required. "
-             "Two preset profiles comes with the program: cheapskate "
-             "(for levelling up the bloodweb as cheaply as possible) and otz's tier list (based on various tier lists "
-             "from Otzdarva, with very minor modifications). "
-             "Both come in two variants, one which prioritises perks, and one which ignores them. "
-             "You can use these presets as a starting point for your own profile, or "
-             "create your own from scratch.<br>"
-             "Each unlockable you configure will have a tier and a subtier:<br>"
-             f"{s*8}- the higher the tier (or subtier), the higher your preference for that unlockable<br>"
-             f"{s*8}- the lower the tier (or subtier), the lower your preference for that unlockable<br>"
-             f"{s*8}- you do not need to configure unlockables for which you have a neutral preference "
-             "(tier and subtier are both automatically 0 in this case)<br>"
-             f"{s*16}- any unlockables not in the profile will be assumed to be neutral (tier and subtier 0)<br>"
-             f"{s*8}- tiers and subtiers can range from -999 to 999<br>"
-             f"{s*8}- tier (A + B) unlockable is equivalent in preference to a tier A unlockable + tier B unlockable<br>"
-             f"{s*16}- for instance, a single tier 2 unlockable is equivalent to two tier 1 unlockables<br>"
-             f"{s*16}- you can use these numbers to fine tune exactly how much you want each unlockable<br>"
-             f"{s*8}- similar mechanics apply with negative tiers to specify how much you dislike an unlockable<br>"
-             f"{s*8}- subtier allows for preference within a tier "
-             "e.g. tier 3 subtier 3 is higher priority than tier 3 subtier 2<br>"
-             "Each profile can store a different set of preferences, for easy switching when required.<br>"
-             "You can import and export profiles as .emp files to share with others.<br><br>"
-             "In the Run page, simply select a profile, character to level, run mode, speed, any limits you want, and run! "
-             "Make sure any shaders, game filters, or colourblind modes are off before running, "
-             "and that your game is unobstructed on your primary monitor, "
-             "or the program is very likely to perform in unintended ways.</p>")
-        self.instructionsLabel = TextLabel(self, "helpPageInstructionsLabel", "How to Use Blood Emporium", Font(12))
+             "如果你使用了自定义图标包，请前往“设置”页面，浏览并选择你的《黎明杀机》图标文件夹路径（使用原版图标留空即可）。<br>"
+             "在“偏好配置”页面中，你可以为血网中的附加品、道具、祭品和技能设置优先级。"
+             "每套偏好设置都可以保存为独立配置方案，方便按需切换。"
+             "程序内置了两套预设方案：节俭流（以尽可能节省血点的方式升级血网）与 "
+             "Otz 推荐强度表（基于 Otzdarva 的强度评级并略作微调）。"
+             "两套预设均提供“优先技能”与“忽略技能”两种版本。你可以以内置预设为基础修改，也可以从零新建自己的方案。<br>"
+             "每个解锁项都可以配置“层级（Tier）”和“子层级（Subtier）”：<br>"
+             f"{s*8}- 层级（或子层级）越高，程序越优先购买该物品<br>"
+             f"{s*8}- 层级（或子层级）越低，程序越倾向避开该物品<br>"
+             f"{s*8}- 对于持有中立态度（既不刻意追求也不排斥）的物品，无需配置（默认层级和子层级均为 0）<br>"
+             f"{s*16}- 未在配置中出现的物品默认视为中立（层级 0，子层级 0）<br>"
+             f"{s*8}- 层级和子层级的有效范围为 -999 到 999<br>"
+             f"{s*8}- 层级为 (A + B) 的单个物品，其优先级等价于 1 个层级为 A 与 1 个层级为 B 的物品之和<br>"
+             f"{s*16}- 例如：1 个层级 2 的物品等价于 2 个层级 1 的物品<br>"
+             f"{s*16}- 你可以借此精细调整对不同物品的偏好权重<br>"
+             f"{s*8}- 负数层级同理，用于指定你排斥或尽量避免购买的物品的权重<br>"
+             f"{s*8}- 子层级用于区分同一层级内的先后顺序，例如：层级 3 子层级 3 的优先级高于层级 3 子层级 2<br>"
+             "不同配置方案可保存不同的偏好列表，随时一键切换；你也可以将方案导入或导出为 .emp 文件与他人分享。<br><br>"
+             "在“运行”页面中，只需选择偏好配置方案、要升级的角色、选择模式、运行速度以及可选上限，即可开始运行！<br>"
+             "运行前请务必关闭任何游戏滤镜、画质补丁或色盲模式，并确保游戏画面在主显示器上完全可见且无遮挡，否则程序可能无法准确识别血网节点。</p>")
+        self.instructionsLabel = TextLabel(self, "helpPageInstructionsLabel", "使用说明（Blood Emporium 汉化版）", Font(12))
         self.instructionsDescription = TextLabel(self, "helpPageInstructionsDescription", d, Font(10))
         self.instructionsDescription.setWordWrap(True)
 
-        self.contactLabel = TextLabel(self, "helpPageContactLabel", "Contact Me", Font(12))
+        self.contactLabel = TextLabel(self, "helpPageContactLabel", "原作者与社区链接", Font(12))
 
         self.contactDiscordRow = QWidget(self)
         self.contactDiscordRow.setObjectName("helpPageContactDiscordRow")
@@ -75,7 +65,7 @@ class HelpPage(QWidget):
         self.contactDiscordIcon.setPixmap(QPixmap(os.getcwd() + "/" + Icons.discord))
         self.contactDiscordIcon.setScaledContents(True)
         self.contactDiscordLabel = HyperlinkTextLabel(self.contactDiscordRow, "helpPageContactDiscordLabel",
-                                                      "Community Discord", "https://discord.gg/J4KCqJJuaM", Font(10))
+                                                      "官方 Discord 社区", "https://discord.gg/J4KCqJJuaM", Font(10))
 
         self.contactTwitterRow = QWidget(self)
         self.contactTwitterRow.setObjectName("helpPageContactTwitterRow")
@@ -86,7 +76,7 @@ class HelpPage(QWidget):
         self.contactTwitterIcon.setFixedSize(QSize(20, 20))
         self.contactTwitterIcon.setPixmap(QPixmap(os.getcwd() + "/" + Icons.twitter))
         self.contactTwitterIcon.setScaledContents(True)
-        self.contactTwitterLabel = HyperlinkTextLabel(self.contactTwitterRow, "helpPageContactTwitterLabel", "Twitter",
+        self.contactTwitterLabel = HyperlinkTextLabel(self.contactTwitterRow, "helpPageContactTwitterLabel", "作者 Twitter / X",
                                                       "https://twitter.com/initiationmusic", Font(10))
 
         self.contactDiscordRowLayout.addWidget(self.contactDiscordIcon)

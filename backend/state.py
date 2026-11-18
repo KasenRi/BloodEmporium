@@ -272,7 +272,8 @@ class StateProcess(Process):
                 for old_log in all_logs[99:]:
                     os.remove(os.path.abspath(old_log))
 
-            file_handler = logging.FileHandler(f"logs/debug-{timestamp.strftime('%y-%m-%d %H-%M-%S')}.log")
+            file_handler = logging.FileHandler(f"logs/debug-{timestamp.strftime('%y-%m-%d %H-%M-%S')}.log",
+                                               encoding="utf-8")
             file_handler.setLevel(logging.DEBUG)
             file_handler.setFormatter(logging.Formatter("%(message)s"))
             log.addHandler(file_handler)
@@ -322,7 +323,7 @@ class StateProcess(Process):
                 if self.prestige_limit is not None and self.prestige_total == self.prestige_limit:
                     print("reached prestige limit. terminating")
                     self.emit("terminate")
-                    self.emit("toggle_text", ("Prestige limit reached.", False, False))
+                    self.emit("toggle_text", ("已达到转生次数上限。", False, False))
                     return
 
                 # screen capture
@@ -374,7 +375,7 @@ class StateProcess(Process):
                     if self.bp_limit is not None and self.bp_total + 20000 > self.bp_limit:
                         print("prestige level: reached bloodpoint limit. terminating")
                         self.emit("terminate")
-                        self.emit("toggle_text", ("Bloodpoint limit reached.", False, False))
+                        self.emit("toggle_text", ("已达到血点上限。", False, False))
                         return
                     # if 20000 > current_bp_balance:
                     #     print("prestige level: bloodpoints depleted. terminating")
@@ -421,7 +422,7 @@ class StateProcess(Process):
                     # disabled auto origin found
                     print("bloodpoints depleted. terminating")
                     self.emit("terminate")
-                    self.emit("toggle_text", ("Bloodpoints depleted.", False, False))
+                    self.emit("toggle_text", ("血点已耗尽。", False, False))
                     return
 
                 # yolov5obb: detect and link all edges
@@ -520,7 +521,7 @@ class StateProcess(Process):
                     if self.bp_limit is not None and self.bp_total + cost > self.bp_limit:
                         print(f"{best_node.node_id} ({best_node.name}): reached bloodpoint limit. terminating")
                         self.emit("terminate")
-                        self.emit("toggle_text", ("Bloodpoint limit reached.", False, False))
+                        self.emit("toggle_text", ("已达到血点上限。", False, False))
                         return
                     # if cost > current_bp_balance:
                     #     print(f"{best_node.node_id} ({best_node.name}): bloodpoints depleted. terminating")
@@ -568,7 +569,7 @@ class StateProcess(Process):
                         # disabled auto origin found
                         print("bloodpoints depleted. terminating")
                         self.emit("terminate")
-                        self.emit("toggle_text", ("Bloodpoints depleted.", False, False))
+                        self.emit("toggle_text", ("血点已耗尽。", False, False))
                         return
 
                     # new level
@@ -597,8 +598,8 @@ class StateProcess(Process):
         except:
             traceback.print_exc()
             self.emit("terminate")
-            self.emit("toggle_text", (f"An error occurred. Please check {os.getcwd()}\\logs\\"
-                                      f"debug-{timestamp.strftime('%y-%m-%d %H-%M-%S')}.log for additional details.",
+            self.emit("toggle_text", (f"发生错误，请查看 {os.getcwd()}\\logs\\"
+                                      f"debug-{timestamp.strftime('%y-%m-%d %H-%M-%S')}.log 获取详细信息。",
                                       True, False))
 
 class State:

@@ -30,7 +30,7 @@ class SummaryCollapsibleBox(CollapsibleBox):
     latest_index = -1
 
     def __init__(self, parent, object_name):
-        super().__init__(parent, object_name, "Purchase Summary (Click to Expand)")
+        super().__init__(parent, object_name, "购买统计（点击展开）")
 
         self.unlockables = {u.unique_id: u for u in Data.get_unlockables()}
         self.killer_names = Data.get_killer_full_name(True)
@@ -41,7 +41,7 @@ class SummaryCollapsibleBox(CollapsibleBox):
         self.saveRow.setMinimumHeight(0)
         self.saveRow.setMaximumHeight(0)
 
-        self.saveButton = Button(self.saveRow, "bloodwebPageSaveButton", "Save Summary to .csv", QSize(150, 35))
+        self.saveButton = Button(self.saveRow, "bloodwebPageSaveButton", "导出统计为 .csv", QSize(150, 35))
         self.saveButton.clicked.connect(self.save_data)
 
         self.saveSuccessText = TextLabel(self.saveRow, "bloodwebPageSaveSuccessText", "", Font(10))
@@ -55,7 +55,7 @@ class SummaryCollapsibleBox(CollapsibleBox):
         self.table.verticalHeader().setFont(Font(10))
         self.table.setRowCount(0) # headers
         self.table.setColumnCount(3) # icon + name, num purchased, num seen
-        self.table.setHorizontalHeaderLabels(["Unlockable", "# Purchased", "# Seen"])
+        self.table.setHorizontalHeaderLabels(["解锁项", "已购买数量", "出现次数"])
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         self.table.setStyleSheet(StyleSheets.table)
         self.table.setMinimumHeight(0)
@@ -73,7 +73,7 @@ class SummaryCollapsibleBox(CollapsibleBox):
         if self.toggleButton.isChecked():
             self.toggleButton.setStyleSheet(StyleSheets.collapsible_box_active)
             self.toggleButton.setIcon(QIcon(Icons.right_arrow))
-            self.toggleButton.setText("Purchase Summary (Click to Expand)")
+            self.toggleButton.setText("购买统计（点击展开）")
             self.saveRow.setMinimumHeight(0)
             self.saveRow.setMaximumHeight(0)
             self.table.setMinimumHeight(0)
@@ -83,20 +83,24 @@ class SummaryCollapsibleBox(CollapsibleBox):
             self.saveRow.setMaximumHeight(35)
             self.toggleButton.setStyleSheet(StyleSheets.collapsible_box_inactive)
             self.toggleButton.setIcon(QIcon(Icons.down_arrow))
-            self.toggleButton.setText("Purchase Summary (Click to Collapse)")
+            self.toggleButton.setText("购买统计（点击收起）")
 
             self.update_table_height()
 
     def save_data(self):
-        path, _ = QFileDialog.getSaveFileName(self, "Save Summary to File", filter="CSV (*.csv)")
+        path, _ = QFileDialog.getSaveFileName(self, "导出购买统计到文件", filter="CSV (*.csv)")
+        if not path:
+            return
         try:
-            data = ["unlockable,bloodpoint cost,# purchased,# seen"]
+            data = ["解锁项ID,名称,血点消耗,已购买数量,出现次数"]
             for unlockable_id in self.indices.keys():
-                data.append(f"{unlockable_id},{Data.get_cost(self.unlockables[unlockable_id])},{self.bought_details(unlockable_id)},{self.seen[unlockable_id]}")
-            with open(path, "w") as file:
+                u = self.unlockables[unlockable_id]
+                safe_name = u.name.replace('"', '""')
+                data.append(f"{unlockable_id},\"{safe_name}\",{Data.get_cost(u)},{self.bought_details(unlockable_id)},{self.seen[unlockable_id]}")
+            with open(path, "w", encoding="utf-8-sig") as file:
                 file.write("\n".join(data))
-            filename = path.split("\\")[-1]
-            self.saveSuccessText.setText(f"Summary saved to {filename}")
+            filename = os.path.basename(path)
+            self.saveSuccessText.setText(f"统计已保存至 {filename}")
             self.saveSuccessText.setStyleSheet(StyleSheets.pink_text)
             self.saveSuccessText.setVisible(True)
             QTimer.singleShot(10000, lambda: self.saveSuccessText.setVisible(False))
@@ -114,9 +118,9 @@ class SummaryCollapsibleBox(CollapsibleBox):
             name = QTableWidgetItem(unlockable.name)
             name.setFlags(name.flags() & ~Qt.ItemFlag.ItemIsSelectable)
             name.setToolTip(
-                f"""Character: {self.killer_names.get(unlockable.category, TextUtil.title_case(unlockable.category))}
-Rarity: {TextUtil.title_case(unlockable.rarity)}
-Type: {TextUtil.title_case(unlockable.type)}""")
+                f"""角色：{Data.get_category_label(unlockable.category) if unlockable.category in Data.CATEGORY_LABELS else self.killer_names.get(unlockable.category, unlockable.category)}
+稀有度：{Data.get_rarity_label(unlockable.rarity)}
+类型：{Data.get_type_label(unlockable.type)}""")
 
             if unlockable.are_custom_icons[0]:
                 pixmap_icon = QIcon(QPixmap(unlockable.image_paths[0]))
@@ -240,9 +244,9 @@ class BloodwebPage(QWidget):
         Runtime().change_limit("prestige", value=text)
 
     def on_prestige_signal(self, prestige_total, prestige_limit):
-        self.runPrestigeProgress.setText(f"Prestige levels completed: {prestige_total} / {prestige_limit}"
+        self.runPrestigeProgress.setText(f"已完成转生次数：{prestige_total} / {prestige_limit}"
                                          if prestige_limit is not None else
-                                         f"Prestige levels completed: {prestige_total}")
+                                         f"已完成转生次数：{prestige_total}")
 
     def on_toggle_bloodpoint_limit(self):
         if self.bloodpointCheckBox.isChecked():
@@ -260,8 +264,8 @@ class BloodwebPage(QWidget):
         Runtime().change_limit("bloodpoint", value=text)
 
     def on_bloodpoint_signal(self, bp_total, bp_limit):
-        self.runBloodpointProgress.setText(f"Bloodpoints spent: {bp_total:,} / {bp_limit:,}"
-                                           if bp_limit is not None else f"Bloodpoints spent: {bp_total:,}")
+        self.runBloodpointProgress.setText(f"已消耗血点：{bp_total:,} / {bp_limit:,}"
+                                           if bp_limit is not None else f"已消耗血点：{bp_total:,}")
 
     def on_summary_seen_signal(self, unlockable_id):
         self.summaryBox.add_summary_seen(unlockable_id)
@@ -275,7 +279,7 @@ class BloodwebPage(QWidget):
 
     def update_time(self):
         if self.starting_time is not None:
-            self.runTimeProgress.setText(f"Time elapsed: {TextUtil.format_time(time.time() - self.starting_time)}")
+            self.runTimeProgress.setText(f"已用时间：{TextUtil.format_time(time.time() - self.starting_time)}")
 
     def stop_time(self):
         self.starting_time = None
@@ -300,12 +304,11 @@ class BloodwebPage(QWidget):
 
     def refresh_run_description(self):
         self.pressed_keys = Config().hotkey()
-        self.runDescription.setText("Make sure your game is open on your primary monitor; shaders, visual "
-                                    "effects, colourblind modes, or any other colour modifications should be disabled."
-                                    "\nIf the app is not selecting unlockables in the bloodweb, try "
-                                    "running the app as an administrator.\n\nShortcut to run or terminate: " +
+        self.runDescription.setText("请确保游戏在主显示器上打开并处于无遮挡状态；同时应关闭任何滤镜、画质补丁、"
+                                    "色盲模式或其他画面颜色调整。\n如果程序未能正常点击血网中的物品，请尝试以管理员身份运行本程序。"
+                                    "\n\n启动 / 终止快捷键：" +
                                     " + ".join([TextUtil.title_case(k) for k in self.pressed_keys]) +
-                                    " (can be changed in settings).")
+                                    "（可在“设置”页面中修改）。")
 
     def get_debug_options(self):
         return (self.devDebugCheckBox.isChecked(), self.devOutputCheckBox.isChecked()) \
@@ -335,7 +338,7 @@ class BloodwebPage(QWidget):
         self.scrollAreaContentLayout.setSpacing(15)
 
         config = Config()
-        self.profileLabel = TextLabel(self, "bloodwebPageProfileLabel", "Preference Profile", Font(12))
+        self.profileLabel = TextLabel(self, "bloodwebPageProfileLabel", "偏好配置方案", Font(12))
         self.profileSelector = Selector(self, "bloodwebPageProfileSelector", QSize(350, 40),
                                         config.profile_names(True) + config.profile_names(False))
         index = self.profileSelector.findText(runtime.profile()[0]) # TODO what if bundled and personal have same name?
@@ -347,20 +350,19 @@ class BloodwebPage(QWidget):
         self.profileSelector.currentIndexChanged.connect(set_profile)
 
         killer_names = Data.get_killer_full_name()
-        characters = {killer_names.get(character_id, character_id).lower(): character_id for character_id in Data.get_characters(True)}
-        characters_reverse = {v: k for k, v in characters.items()} # id to full name
-        self.characterLabel = TextLabel(self, "bloodwebPageCharacterLabel", "Character", Font(12))
+        character_items = [
+            ("逃生者" if character_id == "survivor" else killer_names.get(character_id, character_id), character_id)
+            for character_id in Data.get_characters(True)
+        ]
+        self.characterLabel = TextLabel(self, "bloodwebPageCharacterLabel", "角色", Font(12))
         self.characterDescription = TextLabel(self, "bloodwebPageCharacterDescription",
-                                              "Select the character whose bloodweb you are levelling.")
-        self.characterSelector = Selector(self, "bloodwebPageCharacterSelector", QSize(225, 40),
-                                          list(characters.keys()))
-        index = self.characterSelector.findText(characters_reverse[runtime.character()])
-        if index != -1:
-            self.characterSelector.setCurrentIndex(index)
+                                              "选择正在点血网的角色。")
+        self.characterSelector = Selector(self, "bloodwebPageCharacterSelector", QSize(260, 40),
+                                          character_items, runtime.character())
         self.characterSelector.currentIndexChanged.connect(
-            lambda: Runtime().set_character(characters[self.characterSelector.currentText()]))
+            lambda: Runtime().set_character(self.characterSelector.currentData()))
 
-        self.runModeLabel = TextLabel(self, "bloodwebPageRunModeLabel", "Selection Mode", Font(12))
+        self.runModeLabel = TextLabel(self, "bloodwebPageRunModeLabel", "选择模式", Font(12))
 
         self.awareSingleRow = QWidget(self)
         self.awareSingleRow.setObjectName("bloodwebPageAwareSingleRow")
@@ -368,8 +370,7 @@ class BloodwebPage(QWidget):
         self.awareSingleCheckBox = CheckBox(self.awareSingleRow, "bloodwebPageAwareSingleCheckBox")
         self.awareSingleCheckBox.clicked.connect(lambda: self.on_select_run_mode("aware_single"))
         self.awareSingleDescription = TextLabel(self.awareSingleRow, "bloodwebPageAwareSingleDescription",
-                                                "Single-claim: items will be selected one at a time "
-                                                "according to your preference profile.")
+                                                "单点模式：根据你的偏好配置逐个点击节点。")
 
         self.awareMultiRow = QWidget(self)
         self.awareMultiRow.setObjectName("bloodwebPageAwareMultiRow")
@@ -377,11 +378,9 @@ class BloodwebPage(QWidget):
         self.awareMultiCheckBox = CheckBox(self.awareMultiRow, "bloodwebPageAwareMultiCheckBox")
         self.awareMultiCheckBox.clicked.connect(lambda: self.on_select_run_mode("aware_multi"))
         self.awareMultiDescription = TextLabel(self.awareMultiRow, "bloodwebPageAwareMultiDescription",
-                                               "Multi-claim: items will be selected along entire paths "
-                                               "according to your preference profile (slightly faster but the entity "
-                                               "may consume some items before they can be reached).")
+                                               "多点路径模式：根据你的偏好配置沿整条路径连续点击（速度稍快，但恶灵可能会抢先吞噬部分节点）。")
 
-        self.speedLabel = TextLabel(self, "bloodwebPageSpeedLabel", "Speed", Font(12))
+        self.speedLabel = TextLabel(self, "bloodwebPageSpeedLabel", "运行速度", Font(12))
 
         self.speedSlowRow = QWidget(self)
         self.speedSlowRow.setObjectName("bloodwebPageSpeedSlowRow")
@@ -389,8 +388,8 @@ class BloodwebPage(QWidget):
         self.speedSlowCheckBox = CheckBox(self, "bloodwebPageSpeedSlowCheckBox")
         self.speedSlowCheckBox.clicked.connect(lambda: self.on_select_speed("slow"))
         self.speedSlowLabel = TextLabel(self, "bloodwebPageSpeedSlowLabel",
-                                        "Slow: waits for bloodweb to update visually before proceeding "
-                                        "(will more accurately select items according to availability and preference).",
+                                        "慢速（精准）：等待血网画面完全更新后再进行下一步"
+                                        "（能更准确地根据当前可用节点和偏好进行选择）。",
                                         Font(10))
 
         self.speedFastRow = QWidget(self)
@@ -399,14 +398,13 @@ class BloodwebPage(QWidget):
         self.speedFastCheckBox = CheckBox(self, "bloodwebPageSpeedFastCheckBox")
         self.speedFastCheckBox.clicked.connect(lambda: self.on_select_speed("fast"))
         self.speedFastLabel = TextLabel(self, "bloodwebPageSpeedFastLabel",
-                                        "Fast: does not wait for bloodweb to update visually before proceeding "
-                                        "(may select items suboptimally since changes to the bloodweb will be "
-                                        "registered with a delay).",
+                                        "快速：不等待血网动画完成即继续下一步"
+                                        "（由于血网变化识别存在延迟，选择的节点可能并非最优）。",
                                         Font(10))
         self.on_select_speed(runtime.speed())
 
         self.thresholdLabel = TextLabel(self, "bloodwebPageThresholdLabel",
-                                        "Auto-Purchase Threshold", Font(12))
+                                        "自动购买阈值", Font(12))
         self.thresholdRow = QWidget(self)
         self.thresholdRow.setObjectName("bloodwebPageThresholdRow")
         self.thresholdRowLayout = RowLayout(self.thresholdRow, "bloodwebPageThresholdRowLayout")
@@ -415,24 +413,23 @@ class BloodwebPage(QWidget):
         self.thresholdCheckBox = CheckBoxWithFunction(self.thresholdRow, "bloodwebPageThresholdCheckBox",
                                                       self.on_toggle_auto_purchase_threshold)
         self.thresholdCheckBox.setChecked(t_enabled)
-        self.thresholdTierLabel = TextLabel(self.thresholdRow, "bloodwebPageThresholdTierLabel", "Tier")
+        self.thresholdTierLabel = TextLabel(self.thresholdRow, "bloodwebPageThresholdTierLabel", "层级")
         self.thresholdTierInput = TextInputBox(self.thresholdRow, "bloodwebPageThresholdTierInput", QSize(110, 40),
-                                               "Enter tier", str(t_tier))
-        self.thresholdSubtierLabel = TextLabel(self.thresholdRow, "bloodwebPageThresholdSubtierLabel", "Subtier")
+                                               "输入层级", str(t_tier))
+        self.thresholdSubtierLabel = TextLabel(self.thresholdRow, "bloodwebPageThresholdSubtierLabel", "子层级")
         self.thresholdSubtierInput = TextInputBox(self.thresholdRow, "bloodwebPageThresholdSubtierInput",
-                                                  QSize(110, 40), "Enter subtier", str(t_subtier))
+                                                  QSize(110, 40), "输入子层级", str(t_subtier))
         self.on_toggle_auto_purchase_threshold()
         self.thresholdTierInput.textEdited.connect(self.on_edit_auto_purchase_threshold_tier)
         self.thresholdSubtierInput.textEdited.connect(self.on_edit_auto_purchase_threshold_subtier)
         self.thresholdDescription = TextLabel(self.thresholdRow, "bloodwebPageThresholdDescription",
-                                              "If all remaining unlockables on the bloodweb are below the specified "
-                                              "tier and subtier threshold, auto-purchase will be used.", Font(10))
+                                              "若血网上剩余所有可解锁物品均低于设定的层级与子层级阈值，"
+                                              "将直接使用游戏内置自动购买中心按钮。", Font(10))
         self.on_select_run_mode(runtime.mode())
 
-        self.limitsLabel = TextLabel(self, "bloodwebPageLimitsLabel", "Limits", Font(12))
+        self.limitsLabel = TextLabel(self, "bloodwebPageLimitsLabel", "运行限制", Font(12))
         self.limitsDescription = TextLabel(self, "bloodwebPageLimitsDescription",
-                                           "If multiple of the following limits are selected, the program "
-                                           "will terminate when any limit is reached.")
+                                           "如果同时启用多个限制，任意一项达到上限时程序都会自动停止。")
 
         self.prestigeRow = QWidget(self)
         self.prestigeRow.setObjectName("bloodwebPagePrestigeRow")
@@ -442,14 +439,13 @@ class BloodwebPage(QWidget):
         self.prestigeCheckBox = CheckBoxWithFunction(self.prestigeRow, "bloodwebPagePrestigeCheckBox",
                                                      self.on_toggle_prestige_limit)
         self.prestigeCheckBox.setChecked(p_enabled)
-        self.prestigeLabel = TextLabel(self.prestigeRow, "bloodwebPagePrestigeLabel", "Prestige Limit")
-        self.prestigeInput = TextInputBox(self.prestigeRow, "bloodwebPagePrestigeInput", QSize(110, 40), "Enter levels",
+        self.prestigeLabel = TextLabel(self.prestigeRow, "bloodwebPagePrestigeLabel", "转生次数上限")
+        self.prestigeInput = TextInputBox(self.prestigeRow, "bloodwebPagePrestigeInput", QSize(110, 40), "输入次数",
                                           p_value)
         self.on_toggle_prestige_limit()
         self.prestigeInput.textEdited.connect(self.on_edit_prestige_limit_input)
         self.prestigeDescription = TextLabel(self.prestigeRow, "bloodwebPagePrestigeDescription",
-                                             "The number of prestige levels to complete before terminating "
-                                             "(any integer from 1 to 100).", Font(10))
+                                             "达到指定转生次数后停止运行（1 到 100 之间的整数）。", Font(10))
 
         self.bloodpointRow = QWidget(self)
         self.bloodpointRow.setObjectName("bloodwebPageBloodpointRow")
@@ -459,28 +455,27 @@ class BloodwebPage(QWidget):
         self.bloodpointCheckBox = CheckBoxWithFunction(self.prestigeRow, "bloodwebPageBloodpointCheckBox",
                                                        self.on_toggle_bloodpoint_limit)
         self.bloodpointCheckBox.setChecked(b_enabled)
-        self.bloodpointLabel = TextLabel(self.prestigeRow, "bloodwebPageBloodpointLabel", "Bloodpoint Limit")
+        self.bloodpointLabel = TextLabel(self.prestigeRow, "bloodwebPageBloodpointLabel", "血点消耗上限")
         self.bloodpointInput = TextInputBox(self.prestigeRow, "bloodwebPageBloodpointInput", QSize(140, 40),
-                                            "Enter bloodpoints", b_value)
+                                            "输入血点数", b_value)
         self.on_toggle_bloodpoint_limit()
         self.bloodpointInput.textEdited.connect(self.on_edit_bloodpoint_limit_input)
         self.bloodpointDescription = TextLabel(self.prestigeRow, "bloodwebPageBloodpointDescription",
-                                               "The number of bloodpoints to spend before terminating "
-                                               "(may not be 100% accurate).", Font(10))
+                                               "消耗指定数量血点后停止运行（统计值可能并非 100% 精确）。", Font(10))
         if dev_mode:
-            self.devLabel = TextLabel(self, "bloodwebPageDevLabel", "Dev Options", Font(12))
+            self.devLabel = TextLabel(self, "bloodwebPageDevLabel", "开发者选项", Font(12))
 
             self.devDebugRow = QWidget(self)
             self.devDebugRow.setObjectName("bloodwebPageDevDebugRow")
             self.devDebugRowLayout = RowLayout(self.devDebugRow, "bloodwebPageDevDebugRowLayout")
             self.devDebugCheckBox = CheckBox(self, "bloodwebPageDevDebugCheckBox")
-            self.devDebugLabel = TextLabel(self, "bloodwebPageDevDebugLabel", "Debug Mode", Font(10))
+            self.devDebugLabel = TextLabel(self, "bloodwebPageDevDebugLabel", "调试模式", Font(10))
 
             self.devOutputRow = QWidget(self)
             self.devOutputRow.setObjectName("bloodwebPageDevOutputRow")
             self.devOutputRowLayout = RowLayout(self.devOutputRow, "bloodwebPageDevOutputRowLayout")
             self.devOutputCheckBox = CheckBox(self, "bloodwebPageDevOutputCheckBox")
-            self.devOutputLabel = TextLabel(self, "bloodwebPageDevOutputLabel", "Write Output to Folder", Font(10))
+            self.devOutputLabel = TextLabel(self, "bloodwebPageDevOutputLabel", "将输出写入文件夹", Font(10))
 
             self.devDebugRowLayout.addWidget(self.devDebugCheckBox)
             self.devDebugRowLayout.addWidget(self.devDebugLabel)
@@ -489,7 +484,7 @@ class BloodwebPage(QWidget):
             self.devOutputRowLayout.addWidget(self.devOutputLabel)
             self.devOutputRowLayout.addStretch(1)
 
-        self.runLabel = TextLabel(self, "bloodwebPageRunLabel", "Run", Font(12))
+        self.runLabel = TextLabel(self, "bloodwebPageRunLabel", "运行", Font(12))
         self.runDescription = TextLabel(self, "bloodwebPageRunLabel", "", Font(10))
         self.refresh_run_description()
 
@@ -497,7 +492,7 @@ class BloodwebPage(QWidget):
         self.runRow.setObjectName("bloodwebPageRunRow")
         self.runRowLayout = RowLayout(self.runRow, "bloodwebPageRunRowLayout")
 
-        self.runButton = Button(self.runRow, "bloodwebPageRunButton", "Run", QSize(60, 35))
+        self.runButton = Button(self.runRow, "bloodwebPageRunButton", "开始运行", QSize(92, 35))
         self.runErrorText = TextLabel(self.runRow, "bloodwebPageRunErrorText", "", Font(10))
         self.runErrorText.setVisible(False)
 
@@ -506,7 +501,7 @@ class BloodwebPage(QWidget):
         self.runTimeProgress = TextLabel(self, "bloodwebPageRunTimeProgress", "", Font(10))
         self.on_prestige_signal(0, None)
         self.on_bloodpoint_signal(0, None)
-        self.runTimeProgress.setText(f"Time elapsed: 0s")
+        self.runTimeProgress.setText(f"已用时间：0 秒")
 
         self.summaryBox = SummaryCollapsibleBox(self, "summaryBox")
 

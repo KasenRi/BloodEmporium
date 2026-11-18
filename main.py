@@ -313,17 +313,17 @@ class MainWindow(QMainWindow):
                 try:
                     tier = int(tier)
                 except:
-                    return self.bloodwebPage.show_run_error("Threshold tier must be an integer from -999 to 999.", True)
+                    return self.bloodwebPage.show_run_error("阈值层级必须为 -999 到 999 之间的整数。", True)
                 if abs(tier) > 999:
-                    return self.bloodwebPage.show_run_error("Threshold tier must be an integer from -999 to 999.", True)
+                    return self.bloodwebPage.show_run_error("阈值层级必须为 -999 到 999 之间的整数。", True)
 
                 try:
                     subtier = int(subtier)
                 except:
-                    return self.bloodwebPage.show_run_error("Threshold subtier must be an integer from -999 to 999.",
+                    return self.bloodwebPage.show_run_error("阈值子层级必须为 -999 到 999 之间的整数。",
                                                             True)
                 if abs(subtier) > 999:
-                    return self.bloodwebPage.show_run_error("Threshold subtier must be an integer from -999 to 999.",
+                    return self.bloodwebPage.show_run_error("阈值子层级必须为 -999 到 999 之间的整数。",
                                                             True)
 
             # check prestige limit
@@ -332,35 +332,35 @@ class MainWindow(QMainWindow):
                 try:
                     prestige_limit = int(prestige_limit)
                 except:
-                    return self.bloodwebPage.show_run_error("Prestige level must be an integer from 1 to 100.", True)
+                    return self.bloodwebPage.show_run_error("转生次数上限必须为 1 到 100 之间的整数。", True)
                 if not (1 <= prestige_limit <= 100):
-                    return self.bloodwebPage.show_run_error("Prestige level must be an integer from 1 to 100.", True)
+                    return self.bloodwebPage.show_run_error("转生次数上限必须为 1 到 100 之间的整数。", True)
 
             bp_limit = self.get_runtime_bloodpoint_limit()
             if bp_limit is not None:
                 try:
                     bp_limit = int(bp_limit)
                 except:
-                    return self.bloodwebPage.show_run_error("Bloodpoint limit must be a positive integer.", True)
+                    return self.bloodwebPage.show_run_error("血点消耗上限必须为正整数。", True)
                 if not (1 <= bp_limit):
-                    return self.bloodwebPage.show_run_error("Bloodpoint limit must be a positive integer.", True)
+                    return self.bloodwebPage.show_run_error("血点消耗上限必须为正整数。", True)
 
             # may as well use the validated thresholds & limits
             self.bloodwebPage.summaryBox.reset()
             self.state.run((debug, write_to_output, tier, subtier, prestige_limit, bp_limit))
-            self.toggle_run_terminate_text("Running...", False, True)
+            self.toggle_run_terminate_text("正在运行...", False, True)
             self.bloodwebPage.start_time()
         else: # terminate
             self.terminate()
-            self.toggle_run_terminate_text("Manually terminated.", False, True)
+            self.toggle_run_terminate_text("已手动停止。", False, True)
 
     def toggle_run_terminate_text(self, text, is_error, hide):
         self.bloodwebPage.hide_run_text()
         if not self.state.is_active():
-            self.bloodwebPage.runButton.setText("Run")
-            self.bloodwebPage.runButton.setFixedSize(QSize(60, 35))
+            self.bloodwebPage.runButton.setText("开始运行")
+            self.bloodwebPage.runButton.setFixedSize(QSize(92, 35))
         else:
-            self.bloodwebPage.runButton.setText("Terminate")
+            self.bloodwebPage.runButton.setText("停止运行")
             self.bloodwebPage.runButton.setFixedSize(QSize(92, 35))
 
         if is_error:
@@ -427,7 +427,7 @@ class MainWindow(QMainWindow):
         x, y = config.position()
         if x != -1 and y != -1:
             self.move(x, y)
-        self.setWindowTitle("Blood Emporium")
+        self.setWindowTitle("Blood Emporium 血网助手")
         self.setWindowIcon(QIcon(Icons.icon))
 
         self.__grip_size = 10
@@ -494,7 +494,7 @@ class MainWindow(QMainWindow):
         self.titleBarLayout.setSpacing(0)
 
         # title label
-        self.titleLabel = TextLabel(self.titleBar, "titleLabel", "Blood Emporium")
+        self.titleLabel = TextLabel(self.titleBar, "titleLabel", "Blood Emporium 血网助手")
 
         # window buttons
         self.windowButtons = QWidget(self.topBar)
@@ -546,32 +546,32 @@ class MainWindow(QMainWindow):
         self.menuColumnLayout.setSpacing(0)
 
         self.toggleButton = ToggleButton(self.leftMenu, "toggleButton", QIcon(Icons.menu), self, self.animate)
-        self.toggleLabel = LeftMenuLabel(self.toggleButton, "toggleLabel", "Hide", f"color: {StyleSheets.purple};")
+        self.toggleLabel = LeftMenuLabel(self.toggleButton, "toggleLabel", "收起菜单", f"color: {StyleSheets.purple};")
 
         self.homeButton = LeftMenuButton(self.leftMenu, "homeButton", QIcon(Icons.home), self, True)
-        self.homeLabel = LeftMenuLabel(self.homeButton, "homeLabel", "Home")
+        self.homeLabel = LeftMenuLabel(self.homeButton, "homeLabel", "主页")
         self.homeBar = LeftMenuBar(self.homeButton, "homeBar", True)
         self.homeButton.setBar(self.homeBar)
 
         self.preferencesButton = LeftMenuButton(self.leftMenu, "preferencesButton", QIcon(Icons.preferences), self)
-        self.preferencesLabel = LeftMenuLabel(self.preferencesButton, "preferencesLabel", "Preference Profiles")
+        self.preferencesLabel = LeftMenuLabel(self.preferencesButton, "preferencesLabel", "偏好配置")
         self.preferencesBar = LeftMenuBar(self.preferencesButton, "preferencesBar")
         self.preferencesButton.setBar(self.preferencesBar)
 
         self.bloodwebButton = LeftMenuButton(self.leftMenu, "bloodwebButton", QIcon(Icons.bloodweb), self)
-        self.bloodwebLabel = LeftMenuLabel(self.bloodwebButton, "bloodwebLabel", "Run")
+        self.bloodwebLabel = LeftMenuLabel(self.bloodwebButton, "bloodwebLabel", "运行")
         self.bloodwebBar = LeftMenuBar(self.bloodwebButton, "bloodwebBar")
         self.bloodwebButton.setBar(self.bloodwebBar)
 
         # help button
         self.helpButton = LeftMenuButton(self.menuColumn, "helpButton", QIcon(Icons.help), self)
-        self.helpLabel = LeftMenuLabel(self.helpButton, "helpLabel", "Help & Contact")
+        self.helpLabel = LeftMenuLabel(self.helpButton, "helpLabel", "帮助与联系")
         self.helpBar = LeftMenuBar(self.helpButton, "helpBar")
         self.helpButton.setBar(self.helpBar)
 
         # settings button
         self.settingsButton = LeftMenuButton(self.menuColumn, "settingsButton", QIcon(Icons.settings), self)
-        self.settingsLabel = LeftMenuLabel(self.settingsButton, "settingsLabel", "Settings")
+        self.settingsLabel = LeftMenuLabel(self.settingsButton, "settingsLabel", "设置")
         self.settingsBar = LeftMenuBar(self.settingsButton, "settingsBar")
         self.settingsButton.setBar(self.settingsBar)
 
@@ -609,13 +609,13 @@ class MainWindow(QMainWindow):
         self.homePageIcon.setScaledContents(True)
 
         self.homePageRow1 = HomeRow(self.homePage, 1, QIcon(Icons.settings), self.settingsButton.on_click,
-                                    "Using a custom icon pack? Set up your settings.")
+                                    "使用自定义图标包？点此前往设置图标路径。")
         self.homePageRow2 = HomeRow(self.homePage, 2, QIcon(Icons.preferences), self.preferencesButton.on_click,
-                                    "What would you like from the bloodweb? Set up your preferences.")
+                                    "想优先购买哪些血网物品？点此设置偏好配置。")
         self.homePageRow3 = HomeRow(self.homePage, 3, QIcon(Icons.bloodweb), self.bloodwebButton.on_click,
-                                    "Ready? Start clearing your bloodweb (with optional spending limits)!")
+                                    "准备就绪？点此开始自动点血网（可选消耗上限）！")
         self.homePageRow4 = HomeRow(self.homePage, 4, QIcon(Icons.help), self.helpButton.on_click,
-                                    "Instructions & contact details here.")
+                                    "查看使用说明与作者联系方式。")
 
         # stack: bloodwebPage
         self.bloodwebPage = BloodwebPage(dev_mode)
@@ -649,13 +649,13 @@ class MainWindow(QMainWindow):
         self.bottomBarLayout = RowLayout(self.bottomBar, "bottomBarLayout")
         self.bottomBarLayout.setContentsMargins(10, 0, 10, 0)
 
-        self.authorButton = QPushButton("Made by IIInitiationnn", self.bottomBar)
+        self.authorButton = QPushButton("原作者：IIInitiationnn（GitHub 开源项目）", self.bottomBar)
         self.authorButton.setObjectName("authorButton")
         self.authorButton.setFont(Font(8))
         self.authorButton.setStyleSheet(StyleSheets.text_only_button)
         self.authorButton.setCursor(Qt.PointingHandCursor)
         self.authorButton.clicked.connect(lambda: QDesktopServices.openUrl(QUrl("https://github.com/IIInitiationnn/BloodEmporium")))
-        self.versionLabel = TextLabel(self.bottomBar, "versionLabel", State.version, Font(8))
+        self.versionLabel = TextLabel(self.bottomBar, "versionLabel", f"版本 {State.version} · 汉化版", Font(8))
 
         """
         central
@@ -779,7 +779,7 @@ class MainWindow(QMainWindow):
         self.emitter.toggle_text.connect(self.toggle_run_terminate_text)
 
     def add_available_update_button(self):
-        self.updateButton = QPushButton("An update is available", self.bottomBar)
+        self.updateButton = QPushButton("发现可用更新", self.bottomBar)
         self.updateButton.setObjectName("updateButton")
         self.updateButton.setFont(Font(8))
         self.updateButton.setStyleSheet(StyleSheets.text_only_button)
@@ -911,14 +911,14 @@ if __name__ == "__main__":
     splash.finish(window)
     window.show()
 
-    # auto update
-    try:
-        try_update = get_latest_update()
-    except Exception:
-        try_update = None
-    if try_update is not None:
-        window.add_available_update_button()
-        update()
+    # auto update disabled in localized build to prevent overwriting with upstream English binaries
+    # try:
+    #     try_update = get_latest_update()
+    # except Exception:
+    #     try_update = None
+    # if try_update is not None:
+    #     window.add_available_update_button()
+    #     update()
 
     # auto update assets
     # try:

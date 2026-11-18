@@ -14,17 +14,17 @@ class Dialog(QDialog):
 
         # TODO stylise like main window
         # self.setWindowFlag(Qt.FramelessWindowHint)
-        self.setFixedSize(300, 200)
+        self.setMinimumSize(360, 180)
         self.setWindowTitle(title)
 
 class UpdateDialog(QMessageBox, Dialog):
     def __init__(self, old_version, new_version):
-        super().__init__(f"Update {new_version} available", "updateDialog")
-        self.setText(f"A new version of Blood Emporium ({new_version}) is available.\n"
-                     f"You are currently using version {old_version}.\n\nInstall now?")
+        super().__init__(f"发现新版本 {new_version}", "updateDialog")
+        self.setText(f"Blood Emporium 发现新版本（{new_version}）。\n"
+                     f"当前版本为 {old_version}。\n\n是否立即安装？")
 
-        self.addButton(QPushButton("Install"), QMessageBox.AcceptRole)
-        self.addButton(QPushButton("Not Now"), QMessageBox.RejectRole)
+        self.addButton(QPushButton("立即安装"), QMessageBox.AcceptRole)
+        self.addButton(QPushButton("暂不安装"), QMessageBox.RejectRole)
 
 # https://stackoverflow.com/questions/19917232/how-to-subclass-qmessagebox-and-add-a-progress-bar-in-pyside
 class UpdatingDialog(QMessageBox, Dialog):
@@ -44,14 +44,14 @@ class UpdatingDialog(QMessageBox, Dialog):
         self.progressBar.setMinimum(0)
         self.progressBar.setMaximum(100)
 
-        self.addButton(QPushButton("Cancel"), QMessageBox.AcceptRole)
+        self.addButton(QPushButton("取消"), QMessageBox.AcceptRole)
 
     def setProgress(self, progress):
         self.progressBar.setValue(progress)
 
 class ConfirmDialog(QMessageBox, Dialog):
-    def __init__(self, text, accept_text="Confirm", reject_text="Cancel", no_text=None):
-        super().__init__("Confirm", "confirmDialog")
+    def __init__(self, text, accept_text="确认", reject_text="取消", no_text=None):
+        super().__init__("确认", "confirmDialog")
         self.setText(text)
         self.addButton(QPushButton(accept_text), QMessageBox.AcceptRole)
         if no_text is not None:
@@ -65,6 +65,7 @@ class InputDialog(QInputDialog, Dialog):
         self.setLabelText(label_text)
         self.setInputMode(input_mode)
         self.setOkButtonText(ok_button_text)
+        self.setCancelButtonText("取消")
 
 '''class PromptWindow(QMainWindow):
     def __init__(self, parent, title, object_name):

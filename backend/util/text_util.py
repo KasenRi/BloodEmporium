@@ -4,8 +4,10 @@ import math
 class TextUtil:
     @staticmethod
     def camel_case(text: str):
-        text2 = "".join([i for i in text if i.isalpha() or i == " "]).title().replace(" ", "")
-        return text2[0].lower() + text2[1:]
+        text2 = "".join([i for i in text if (i.isascii() and i.isalpha()) or i == " "]).title().replace(" ", "")
+        if not text2:
+            text2 = "".join([i for i in text if i.isalnum()])
+        return (text2[0].lower() + text2[1:]) if text2 else "item"
 
     @staticmethod
     def title_case(text: str):
@@ -41,4 +43,4 @@ class TextUtil:
         secs = math.floor(s % 60)
         mins = math.floor((s / 60) % 60)
         hrs = math.floor((s / 3600))
-        return f"{f'{hrs}h ' if hrs > 0 else ''}{f'{mins}m ' if hrs > 0 or mins > 0 else ''}{secs}s"
+        return f"{f'{hrs}小时' if hrs > 0 else ''}{f'{mins}分' if hrs > 0 or mins > 0 else ''}{secs}秒"

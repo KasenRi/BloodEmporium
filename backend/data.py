@@ -10,10 +10,11 @@ class Unlockable:
     def generate_unique_id(unlockable_id, category):
         return f"{unlockable_id}_{category}"
 
-    def __init__(self, unlockable_id, name, category, rarity, notes, unlockable_type, item_type, order, image_paths, are_custom_icons):
+    def __init__(self, unlockable_id, name, category, rarity, notes, unlockable_type, item_type, order, image_paths, are_custom_icons, name_en=None):
         self.unique_id = Unlockable.generate_unique_id(unlockable_id, category)
         self.id = unlockable_id
         self.name = name
+        self.name_en = name_en or name
         self.category = category
         self.rarity = rarity
         self.notes = notes
@@ -30,6 +31,49 @@ class Unlockable:
         self.are_custom_icons = are_custom_icons
 
 class Data:
+    CATEGORY_LABELS = {
+        "universal": "通用",
+        "survivor": "逃生者",
+        "killer": "杀手",
+    }
+
+    TYPE_LABELS = {
+        "add-on": "附加品",
+        "item": "道具",
+        "offering": "祭品",
+        "perk": "技能",
+        "mystery_box": "神秘礼盒",
+    }
+
+    ITEM_TYPE_LABELS = {
+        "firecracker": "鞭炮",
+        "flashlight": "手电筒",
+        "fog_vial": "迷雾瓶",
+        "key": "钥匙",
+        "map": "地图",
+        "medkit": "医疗箱",
+        "toolbox": "工具箱",
+    }
+
+    RARITY_LABELS = {
+        "common": "普通",
+        "uncommon": "精良",
+        "rare": "稀有",
+        "very_rare": "非常稀有",
+        "ultra_rare": "非凡",
+        "event": "活动",
+        "varies": "随等级变化",
+    }
+
+    SORT_LABELS = {
+        "default": "默认",
+        "name": "名称",
+        "character": "角色",
+        "rarity": "稀有度",
+        "type": "类型",
+        "tier": "层级",
+    }
+
     __connection = None
     try:
         __connection = sqlite3.connect(Path.assets_database)
@@ -38,8 +82,12 @@ class Data:
         print(f"error")
 
     __cursor = __connection.cursor()
-    __cursor.execute("SELECT id, alternate_path, name, category, rarity, notes, type, item_type, \"order\" FROM unlockables ORDER BY \"order\"")
-    __unlockables_rows = __cursor.fetchall()
+    try:
+        __cursor.execute("SELECT id, alternate_path, name, category, rarity, notes, type, item_type, \"order\", name_en FROM unlockables ORDER BY \"order\"")
+        __unlockables_rows = __cursor.fetchall()
+    except sqlite3.OperationalError:
+        __cursor.execute("SELECT id, alternate_path, name, category, rarity, notes, type, item_type, \"order\" FROM unlockables ORDER BY \"order\"")
+        __unlockables_rows = [row + (row[2],) for row in __cursor.fetchall()]
 
     __cursor.execute("SELECT id, alias, name FROM killers")
     __killers_rows = __cursor.fetchall()
@@ -52,7 +100,7 @@ class Data:
         all_files = [(subdir, file) for subdir, dirs, files in os.walk(Config().path()) for file in files]
         rows = []
         for row in Data.__unlockables_rows:
-            u_id, u_alternate_path, u_name, u_category, u_rarity, u_notes, u_type, u_item_type, u_order = row
+            u_id, u_alternate_path, u_name, u_category, u_rarity, u_notes, u_type, u_item_type, u_order, u_name_en = row
 
             # search in user's folder
             u_image_paths = []
@@ -97,7 +145,7 @@ class Data:
     def get_icons():
         icons = {}
         for row in Data.__get_unlockable_data():
-            u_id, u_alternate_path, u_name, u_category, u_rarity, u_notes, u_type, u_item_type, u_order, u_image_paths, u_are_custom_icons = row
+            u_id, u_alternate_path, u_name, u_category, u_rarity, u_notes, u_type, u_item_type, u_order, u_name_en, u_image_paths, u_are_custom_icons = row
             icons[Unlockable.generate_unique_id(u_id, u_category)] = {
                 "image_paths": u_image_paths,
                 "are_custom_icons": u_are_custom_icons,
@@ -109,8 +157,8 @@ class Data:
     def get_unlockables() -> List[Unlockable]:
         unlockables = []
         for row in Data.__get_unlockable_data():
-            u_id, u_alternate_path, u_name, u_category, u_rarity, u_notes, u_type, u_item_type, u_order, u_image_paths, u_are_custom_icons = row
-            unlockables.append(Unlockable(u_id, u_name, u_category, u_rarity, u_notes, u_type, u_item_type, u_order, u_image_paths, u_are_custom_icons))
+            u_id, u_alternate_path, u_name, u_category, u_rarity, u_notes, u_type, u_item_type, u_order, u_name_en, u_image_paths, u_are_custom_icons = row
+            unlockables.append(Unlockable(u_id, u_name, u_category, u_rarity, u_notes, u_type, u_item_type, u_order, u_image_paths, u_are_custom_icons, u_name_en))
         return unlockables
 
     @staticmethod
@@ -124,7 +172,29 @@ class Data:
 
     @staticmethod
     def get_killer_full_name(include_the=False):
-        return {killer_id: f"{'The ' if include_the else ''}{alias} ({name})" for killer_id, alias, name in Data.__killers_rows}
+        return {killer_id: f"{alias}（{name}）" for killer_id, alias, name in Data.__killers_rows}
+
+    @staticmethod
+    def get_category_label(category_id):
+        if category_id in Data.CATEGORY_LABELS:
+            return Data.CATEGORY_LABELS[category_id]
+        return Data.get_killer_alias().get(category_id, category_id)
+
+    @staticmethod
+    def get_type_label(type_id):
+        return Data.TYPE_LABELS.get(type_id, type_id)
+
+    @staticmethod
+    def get_item_type_label(item_type_id):
+        return Data.ITEM_TYPE_LABELS.get(item_type_id, item_type_id)
+
+    @staticmethod
+    def get_rarity_label(rarity_id):
+        return Data.RARITY_LABELS.get(rarity_id, rarity_id)
+
+    @staticmethod
+    def get_sort_label(sort_id):
+        return Data.SORT_LABELS.get(sort_id, sort_id)
 
     @staticmethod
     def get_categories(sort):
@@ -193,7 +263,7 @@ class Data:
         filtered = []
         for unlockable_widget in sorted_widgets:
             unlockable = unlockable_widget.unlockable
-            if name != "" and name.lower() not in unlockable.name.lower():
+            if name != "" and name.lower() not in unlockable.name.lower() and name.lower() not in unlockable.name_en.lower():
                 filtered.append((unlockable_widget, False))
                 continue
 

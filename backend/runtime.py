@@ -27,23 +27,23 @@ class Runtime:
         if validate:
             # create file if not exists
             try:
-                with open("runtime.json", "x") as f:
+                with open("runtime.json", "x", encoding="utf-8") as f:
                     f.write("{}")
             except FileExistsError:
                 pass
 
             # validate json
             try:
-                with open("runtime.json", "r") as f:
+                with open("runtime.json", "r", encoding="utf-8") as f:
                     self.runtime = dict(json.load(f))
             except json.decoder.JSONDecodeError:
-                with open("runtime.json", "w") as f:
+                with open("runtime.json", "w", encoding="utf-8") as f:
                     f.write("{}")
                     self.runtime = dict()
 
             self.commit_changes()
 
-        with open("runtime.json", "r") as f:
+        with open("runtime.json", "r", encoding="utf-8") as f:
             self.runtime = dict(json.load(f))
 
     def profile(self):
@@ -78,8 +78,8 @@ class Runtime:
                 if field not in updated_runtime["limits"][limit]:
                     updated_runtime["limits"][limit][field] = Runtime.default["limits"][limit][field]
 
-        with open("runtime.json", "w") as output:
-            json.dump(updated_runtime, output, indent=4) # to preserve order
+        with open("runtime.json", "w", encoding="utf-8") as output:
+            json.dump(updated_runtime, output, indent=4, ensure_ascii=False) # to preserve order
 
     def set_profile(self, profile, bundled):
         self.runtime["profile"] = profile

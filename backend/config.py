@@ -41,20 +41,20 @@ class Config:
             if not os.path.isfile("config.json"):
                 copyfile("assets/default_config.json", "config.json")
 
-            with open("config.json", "r") as f:
+            with open("config.json", "r", encoding="utf-8") as f:
                 self.config: Dict[str, Any] = dict(json.load(f))
             self.commit_changes() # ensure all necessary keys are in (essentially copying missing values)
 
-        with open("config.json", "r") as f:
+        with open("config.json", "r", encoding="utf-8") as f:
             self.config = dict(json.load(f))
 
         # TODO set the value instead of raising error (use get_next_free_profile_name)
         ids = []
         for num, profile in enumerate(self.config["profiles"], 1):
             if "id" not in profile.keys():
-                raise ConfigError(f"Missing profile id for profile {num} in config.json")
+                raise ConfigError(f"config.json 中的第 {num} 个配置缺少 id 字段")
             if profile["id"] in ids:
-                raise ConfigError(f"Multiple profiles with same id (profile {num}) in config.json")
+                raise ConfigError(f"config.json 中存在重复的配置名称（第 {num} 个配置）")
             if "notes" not in profile.keys():
                 profile["notes"] = ""
 
@@ -75,7 +75,7 @@ class Config:
         self.bundled_profiles = []
         if os.path.isdir("assets/presets"):
             for file in os.listdir("assets/presets"):
-                with open(f"assets/presets/{file}", "r") as f:
+                with open(f"assets/presets/{file}", "r", encoding="utf-8") as f:
                     self.bundled_profiles.append(json.load(f))
 
     def top_left(self):
@@ -127,11 +127,11 @@ class Config:
         return [profile["id"] for profile in self.__profiles(bundled)]
 
     def commit_changes(self):
-        with open("assets/default_config.json", "r") as default:
+        with open("assets/default_config.json", "r", encoding="utf-8") as default:
             default_config = dict(json.load(default))
             for profile in self.config.get("profiles", []):
                 Config.migrate_profile(profile)
-            with open("config.json", "w") as output:
+            with open("config.json", "w", encoding="utf-8") as output:
                 json.dump({
                     "path": self.config.get("path", default_config["path"]),
                     "hotkey": self.config.get("hotkey", default_config["hotkey"]),
@@ -142,7 +142,7 @@ class Config:
                     "x": self.config.get("x", default_config["x"]),
                     "y": self.config.get("y", default_config["y"]),
                     "profiles": self.config.get("profiles", default_config["profiles"]),
-                }, output, indent=4) # to preserve order
+                }, output, indent=4, ensure_ascii=False) # to preserve order
         copyfile("config.json", "config_backup.json")
 
     @staticmethod
@@ -202,10 +202,10 @@ class Config:
     def get_next_free_profile_name(self):
         profile_ids = [profile["id"] for profile in self.__profiles()]
         i = 0
-        profile_id = "new profile"
+        profile_id = "新建配置"
         while profile_id in profile_ids:
             i += 1
-            profile_id = f"new profile ({i})"
+            profile_id = f"新建配置 ({i})"
         return profile_id
 
     def add_profile(self, new_profile, index=None):
@@ -242,8 +242,8 @@ class Config:
         if profile_id is None:
             return
         profile = self.get_profile_by_id(profile_id, bundled)
-        with open(f"exports/{profile_id}.emp", "w") as file:
-            file.write(json.dumps(profile))
+        with open(f"exports/{profile_id}.emp", "w", encoding="utf-8") as file:
+            file.write(json.dumps(profile, ensure_ascii=False))
 
     @staticmethod
     def migrate_profile(profile):

@@ -18,7 +18,7 @@ from backend.util.text_util import TextUtil
 class Font(QFont):
     def __init__(self, font_size):
         super().__init__()
-        self.setFamily("Segoe UI")
+        self.setFamily("Microsoft YaHei UI")
         self.setPointSize(font_size)
 
 class TextLabel(QLabel):
@@ -151,9 +151,16 @@ class Selector(QComboBox):
         # else:
         #     self.setFixedSize(size)
         self.setFixedSize(size)
-        self.addItems(items)
+        for item in items:
+            if isinstance(item, tuple):
+                self.addItem(item[0], item[1])
+            else:
+                self.addItem(item, item)
         if active_item is not None:
-            self.setCurrentIndex(self.findText(active_item))
+            idx = self.findData(active_item)
+            if idx == -1:
+                idx = self.findText(active_item)
+            self.setCurrentIndex(idx)
         self.setView(self.view)
         self.setStyleSheet(StyleSheets.selector)
 
@@ -266,7 +273,7 @@ class HotkeyInput(QPushButton):
             self.pressed_keys_cache = self.pressed_keys
             self.pressed_keys = []
             self.setStyleSheet(StyleSheets.button_recording)
-            self.setText("Recording keystrokes...")
+            self.setText("请按下快捷键...")
             self.on_activate()
             self.start_recording_listener()
             self.active = True

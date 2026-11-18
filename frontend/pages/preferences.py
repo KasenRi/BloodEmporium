@@ -25,7 +25,7 @@ from backend.util.text_util import TextUtil
 
 class FilterOptionsCollapsibleBox(CollapsibleBox):
     def __init__(self, parent, object_name, on_click):
-        super().__init__(parent, object_name, "Filter Options (Click to Expand)")
+        super().__init__(parent, object_name, "筛选条件（点击展开）")
         self.on_click = on_click # when a filter is set
 
         self.filters = QWidget(self)
@@ -41,12 +41,12 @@ class FilterOptionsCollapsibleBox(CollapsibleBox):
         self.filterButtonsRow.setObjectName("preferencesPageFilterButtonsRow")
         self.filterButtonsRowLayout = RowLayout(self.filterButtonsRow, "preferencesPageFilterButtonsRowLayout")
 
-        self.clearFiltersButton = Button(self.filters, "preferencesPageClearFiltersButton", "Clear Filters",
+        self.clearFiltersButton = Button(self.filters, "preferencesPageClearFiltersButton", "清空筛选",
                                          QSize(100, 35))
         self.clearFiltersButton.clicked.connect(self.clear_filters)
 
-        self.killersFiltersButton = Button(self.filters, "preferencesPageKillersFiltersButton", "Select All Killers",
-                                           QSize(125, 35))
+        self.killersFiltersButton = Button(self.filters, "preferencesPageKillersFiltersButton", "全选杀手",
+                                           QSize(100, 35))
         self.killersFiltersButton.clicked.connect(self.filter_killers)
 
         self.filterButtonsRowLayout.addWidget(self.clearFiltersButton)
@@ -58,9 +58,8 @@ class FilterOptionsCollapsibleBox(CollapsibleBox):
         # character
         self.num_per_row = 10
         categories = Data.get_categories(True)
-        killer_aliases = Data.get_killer_alias()
         num_character_columns = math.ceil(len(categories) / self.num_per_row) * 2 + 1 # extra 1 for a gap
-        self.characterHeading = TextLabel(self.filters, "characterHeading", "Character")
+        self.characterHeading = TextLabel(self.filters, "characterHeading", "角色")
         self.filtersLayout.addWidget(self.characterHeading, 2, 0, 1, num_character_columns)
 
         self.characterCheckBoxes = {}
@@ -72,11 +71,11 @@ class FilterOptionsCollapsibleBox(CollapsibleBox):
             self.filtersLayout.addWidget(checkbox, (i % self.num_per_row + 3), (i // self.num_per_row) * 2, 1, 1)
 
             label = TextLabel(self.filters, f"{TextUtil.camel_case(character)}CharacterFilterLabel",
-                              killer_aliases.get(character, TextUtil.title_case(character)))
+                              Data.get_category_label(character))
             self.filtersLayout.addWidget(label, (i % self.num_per_row + 3), (i // self.num_per_row) * 2 + 1, 1, 1)
 
         # rarity
-        self.rarityHeading = TextLabel(self.filters, "rarityHeading", "Rarity")
+        self.rarityHeading = TextLabel(self.filters, "rarityHeading", "稀有度")
         self.filtersLayout.addWidget(self.rarityHeading, 2, num_character_columns, 1, 2) # + 0
 
         self.rarityCheckBoxes = {}
@@ -88,11 +87,11 @@ class FilterOptionsCollapsibleBox(CollapsibleBox):
             self.filtersLayout.addWidget(checkbox, i, num_character_columns, 1, 1) # + 0
 
             label = TextLabel(self.filters, f"{TextUtil.camel_case(rarity)}RarityFilterLabel",
-                              TextUtil.title_case(rarity))
+                              Data.get_rarity_label(rarity))
             self.filtersLayout.addWidget(label, i, num_character_columns + 1, 1, 1) # + 1
 
         # type
-        self.typeHeading = TextLabel(self.filters, "typeHeading", "Type")
+        self.typeHeading = TextLabel(self.filters, "typeHeading", "类型")
         self.filtersLayout.addWidget(self.typeHeading, 2, num_character_columns + 2, 1, 2) # + 2
 
         self.typeCheckBoxes = {}
@@ -104,11 +103,11 @@ class FilterOptionsCollapsibleBox(CollapsibleBox):
             self.filtersLayout.addWidget(checkbox, i, num_character_columns + 2, 1, 1) # + 2
 
             label = TextLabel(self.filters, f"{TextUtil.camel_case(unlockable_type)}TypeFilterLabel",
-                              TextUtil.title_case(unlockable_type))
+                              Data.get_type_label(unlockable_type))
             self.filtersLayout.addWidget(label, i, num_character_columns + 3, 1, 1) # + 3
 
         # item type
-        self.itemTypeHeading = TextLabel(self.filters, "itemTypeHeading", "Item Type")
+        self.itemTypeHeading = TextLabel(self.filters, "itemTypeHeading", "道具类型")
         self.filtersLayout.addWidget(self.itemTypeHeading, 2, num_character_columns + 4, 1, 2) # + 4
 
         self.itemTypeCheckBoxes = {}
@@ -120,7 +119,7 @@ class FilterOptionsCollapsibleBox(CollapsibleBox):
             self.filtersLayout.addWidget(checkbox, i, num_character_columns + 4, 1, 1) # + 4
 
             label = TextLabel(self.filters, f"{TextUtil.camel_case(item_type)}ItemTypeFilterLabel",
-                              TextUtil.title_case(item_type))
+                              Data.get_item_type_label(item_type))
             self.filtersLayout.addWidget(label, i, num_character_columns + 5, 1, 1) # + 5
 
         self.filtersLayout.setColumnStretch(999, 1)
@@ -144,13 +143,13 @@ class FilterOptionsCollapsibleBox(CollapsibleBox):
         if self.toggleButton.isChecked():
             self.toggleButton.setStyleSheet(StyleSheets.collapsible_box_active)
             self.toggleButton.setIcon(QIcon(Icons.right_arrow))
-            self.toggleButton.setText("Filter Options (Click to Expand)")
+            self.toggleButton.setText("筛选条件（点击展开）")
             self.filters.setMinimumHeight(0)
             self.filters.setMaximumHeight(0)
         else:
             self.toggleButton.setStyleSheet(StyleSheets.collapsible_box_inactive)
             self.toggleButton.setIcon(QIcon(Icons.down_arrow))
-            self.toggleButton.setText("Filter Options (Click to Collapse)")
+            self.toggleButton.setText("筛选条件（点击收起）")
             self.filters.setMinimumHeight(round(40 * (self.num_per_row + 1.5)))
             self.filters.setMaximumHeight(round(40 * (self.num_per_row + 1.5)))
 
@@ -169,7 +168,7 @@ class FilterOptionsCollapsibleBox(CollapsibleBox):
 
 class UnlockableWidget(QWidget):
     def __init__(self, parent, unlockable: Unlockable, tier, subtier, on_unlockable_select):
-        name = TextUtil.camel_case(unlockable.name)
+        name = TextUtil.camel_case(unlockable.unique_id)
 
         super().__init__(parent)
         self.setObjectName(f"{name}Widget")
@@ -183,14 +182,16 @@ class UnlockableWidget(QWidget):
         self.layout.addWidget(self.checkBox)
 
         killer_names = Data.get_killer_full_name(True)
+        cat_label = Data.get_category_label(unlockable.category) if unlockable.category in Data.CATEGORY_LABELS else killer_names.get(unlockable.category, unlockable.category)
         self.image = QLabel(self)
         self.image.setObjectName(f"{name}Image")
         self.image.setFixedSize(QSize(75, 75))
         self.refresh_icon()
         self.image.setScaledContents(True)
-        self.image.setToolTip(f"""Character: {killer_names.get(unlockable.category, TextUtil.title_case(unlockable.category))}
-Rarity: {TextUtil.title_case(unlockable.rarity)}
-Type: {TextUtil.title_case(unlockable.type)}""")
+        self.image.setToolTip(f"""英文原名：{unlockable.name_en}
+角色：{cat_label}
+稀有度：{Data.get_rarity_label(unlockable.rarity)}
+类型：{Data.get_type_label(unlockable.type)}""")
         self.layout.addWidget(self.image)
 
         self.label = QLabel(self)
@@ -200,16 +201,16 @@ Type: {TextUtil.title_case(unlockable.type)}""")
         self.label.setText(unlockable.name)
         self.layout.addWidget(self.label)
 
-        self.layout.addSpacing(375 - self.label.fontMetrics().boundingRect(self.label.text()).width())
+        self.layout.addSpacing(max(12, 375 - self.label.fontMetrics().boundingRect(self.label.text()).width()))
 
         self.tierLabel = QLabel(self)
         self.tierLabel.setObjectName(f"{name}TierLabel")
         self.tierLabel.setFont(Font(10))
         self.tierLabel.setStyleSheet(StyleSheets.white_text)
-        self.tierLabel.setText("Tier")
+        self.tierLabel.setText("层级")
         self.layout.addWidget(self.tierLabel)
 
-        self.tierInput = TextInputBox(self, f"{name}TierInput", QSize(110, 40), "Enter tier", str(tier),
+        self.tierInput = TextInputBox(self, f"{name}TierInput", QSize(110, 40), "输入层级", str(tier),
                                       style_sheet=StyleSheets.tiers_input(tier))
         self.tierInput.textEdited.connect(self.on_tier_update)
         self.layout.addWidget(self.tierInput)
@@ -218,10 +219,10 @@ Type: {TextUtil.title_case(unlockable.type)}""")
         self.subtierLabel.setObjectName(f"{name}TierLabel")
         self.subtierLabel.setFont(Font(10))
         self.subtierLabel.setStyleSheet(StyleSheets.white_text)
-        self.subtierLabel.setText("Subtier")
+        self.subtierLabel.setText("子层级")
         self.layout.addWidget(self.subtierLabel)
 
-        self.subtierInput = TextInputBox(self, f"{name}SubtierInput", QSize(110, 40), "Enter subtier", str(subtier),
+        self.subtierInput = TextInputBox(self, f"{name}SubtierInput", QSize(110, 40), "输入子层级", str(subtier),
                                          style_sheet=StyleSheets.tiers_input(subtier))
         self.subtierInput.textEdited.connect(self.on_subtier_update)
         self.layout.addWidget(self.subtierInput)
@@ -303,7 +304,7 @@ class PreferencesPage(QWidget):
 
     # TODO optimise?
     def replace_unlockable_widgets(self):
-        sort_by = self.sortSelector.currentText()
+        sort_by = self.sortSelector.currentData()
 
         if self.lastSortedBy == sort_by:
             # if there was no change in ordering, don't pass in sort_by; the resulting visible list has arbitrary order
@@ -358,9 +359,8 @@ class PreferencesPage(QWidget):
         if not self.ignore_profile_signals:
             self.ignore_profile_signals = True
             if self.has_unsaved_changes():
-                save_profile_dialog = ConfirmDialog("You have unsaved changes to the current profile. "
-                                                    "Do you wish to save or discard these changes?",
-                                                    "Save", "Cancel", "Discard")
+                save_profile_dialog = ConfirmDialog("当前配置方案有未保存的更改。是否保存这些更改？",
+                                                    "保存", "取消", "放弃更改")
                 # shown order is save (index 0), discard (1), cancel (2) since it turns out the exec return is the button index (in order of addition) not the role
                 confirmation_index = save_profile_dialog.exec()
                 print(confirmation_index)
@@ -378,7 +378,7 @@ class PreferencesPage(QWidget):
             self.update_profiles_from_config()
             index = self.profileSelector.findText(profile_id)
             self.profileSelector.setCurrentIndex(index)
-            self.show_preferences_page_save_success(f"New empty profile created: {profile_id}")
+            self.show_preferences_page_save_success(f"已创建空白配置方案：{profile_id}")
 
             self.ignore_profile_signals = False
             self.switch_edit_profile()
@@ -398,9 +398,8 @@ class PreferencesPage(QWidget):
 
         non_integer = Config.verify_tiers(self.unlockableWidgets)
         if len(non_integer) > 0:
-            self.show_preferences_page_save_error(f"There are {len(non_integer)} unlockables with invalid "
-                                                  "inputs. Inputs must be a number from -999 to 999. Changes "
-                                                  "not saved.")
+            self.show_preferences_page_save_error(f"有 {len(non_integer)} 个解锁项的输入无效。"
+                                                  "输入必须为 -999 到 999 之间的整数，更改未保存。")
             return
 
         for widget in self.unlockableWidgets:
@@ -411,16 +410,15 @@ class PreferencesPage(QWidget):
                 updated_profile.pop(widget.unlockable.unique_id, None)
         Config().set_profile(updated_profile)
 
-        self.show_preferences_page_save_success(f"Changes saved to profile: {profile_id}")
+        self.show_preferences_page_save_success(f"已保存配置方案：{profile_id}")
         QTimer.singleShot(10000, self.hide_preferences_page_save_text)
 
     def save_to_profile(self, title, label_text, ok_button_text, index=None) -> str or None:
         # check for invalid tiers
         non_integer = Config.verify_tiers(self.unlockableWidgets)
         if len(non_integer) > 0:
-            self.show_preferences_page_save_error(f"There are {len(non_integer)} unlockables with "
-                                                  "invalid inputs. Inputs must be a number from -999 to "
-                                                  "999. Changes not saved.")
+            self.show_preferences_page_save_error(f"有 {len(non_integer)} 个解锁项的输入无效。"
+                                                  "输入必须为 -999 到 999 之间的整数，更改未保存。")
             return None
 
         # save or cancel
@@ -432,8 +430,7 @@ class PreferencesPage(QWidget):
         # check if user wants to overwrite profile
         profile_id = new_profile_dialog.textValue()
         if Config().is_profile(profile_id):
-            overwrite_profile_dialog = ConfirmDialog("This will overwrite an existing profile. Are you "
-                                                     "sure you want to save?")
+            overwrite_profile_dialog = ConfirmDialog("这将覆盖同名的现有配置方案，确定要保存吗？")
             confirmation = overwrite_profile_dialog.exec()
             if confirmation != QMessageBox.AcceptRole:
                 return None
@@ -453,15 +450,15 @@ class PreferencesPage(QWidget):
         self.profileSelector.setCurrentIndex(index)
 
         if already_existed:
-            self.show_preferences_page_save_success(f"Existing profile overridden with changes: {profile_id}")
+            self.show_preferences_page_save_success(f"已覆盖现有配置方案：{profile_id}")
         else:
-            self.show_preferences_page_save_success(f"Changes saved to profile: {profile_id}")
+            self.show_preferences_page_save_success(f"已保存配置方案：{profile_id}")
         return profile_id
 
     def save_as_profile(self):
         if not self.ignore_profile_signals:
             self.ignore_profile_signals = True # saving as new profile; don't trigger
-            new_profile_id = self.save_to_profile("Save As", "Enter your new profile name:", "Save")
+            new_profile_id = self.save_to_profile("另存为", "请输入新配置方案的名称：", "保存")
             self.ignore_profile_signals = False
             if new_profile_id is None:
                 return
@@ -483,7 +480,7 @@ class PreferencesPage(QWidget):
             index = self.profileSelector.currentIndex()
 
             # save as
-            new_profile_id = self.save_to_profile("Save and Rename", "Enter your new profile name:", "Save and Rename",
+            new_profile_id = self.save_to_profile("保存并重命名", "请输入新配置方案的名称：", "保存并重命名",
                                                   index)
             if new_profile_id is None:
                 self.ignore_profile_signals = False
@@ -515,7 +512,7 @@ class PreferencesPage(QWidget):
                 return
 
             # confirm if user wants to delete
-            delete_profile_dialog = ConfirmDialog("Are you sure you want to delete this profile?")
+            delete_profile_dialog = ConfirmDialog("确定要删除此配置方案吗？")
             confirmation = delete_profile_dialog.exec()
             if confirmation != QMessageBox.AcceptRole:
                 self.ignore_profile_signals = False
@@ -528,15 +525,14 @@ class PreferencesPage(QWidget):
             self.ignore_profile_signals = False
             self.switch_edit_profile()
 
-            self.show_preferences_page_save_success(f"Profile deleted: {profile_id}")
+            self.show_preferences_page_save_success(f"已删除配置方案：{profile_id}")
 
             self.ignore_profile_signals = False
 
     def export_profile(self):
         if self.has_unsaved_changes():
-            save_profile_dialog = ConfirmDialog("You have unsaved changes to the current profile. "
-                                                "Do you wish to save these changes or cancel the export?",
-                                                "Save", "Cancel")
+            save_profile_dialog = ConfirmDialog("当前配置方案有未保存的更改。是否先保存再导出？",
+                                                "保存", "取消")
             confirmation = save_profile_dialog.exec()
             if confirmation == QMessageBox.AcceptRole:
                 self.save_profile()
@@ -545,16 +541,15 @@ class PreferencesPage(QWidget):
 
         profile_id = self.get_edit_profile()
         Config().export_profile(profile_id, self.profileSelectorIsBundled)
-        self.show_preferences_page_save_success(f"Profile exported to \"{profile_id}.emp\". Share it with friends!")
+        self.show_preferences_page_save_success(f"已导出配置方案至“{profile_id}.emp”，快分享给好友吧！")
 
     def import_profile(self):
         if not self.ignore_profile_signals:
             self.ignore_profile_signals = True
 
             if self.has_unsaved_changes():
-                save_profile_dialog = ConfirmDialog("You have unsaved changes to the current profile. "
-                                                    "Do you wish to save these changes or cancel the import?",
-                                                    "Save", "Cancel")
+                save_profile_dialog = ConfirmDialog("当前配置方案有未保存的更改。是否先保存再导入？",
+                                                    "保存", "取消")
                 confirmation = save_profile_dialog.exec()
                 if confirmation == QMessageBox.AcceptRole:
                     self.save_profile()
@@ -562,19 +557,18 @@ class PreferencesPage(QWidget):
                     self.ignore_profile_signals = False
                     return
 
-            path, _ = QFileDialog.getOpenFileName(self, "Select .emp File to Import",
-                                                  filter="Blood Emporium Profiles (*.emp)")
+            path, _ = QFileDialog.getOpenFileName(self, "选择要导入的 .emp 配置文件",
+                                                  filter="Blood Emporium 配置文件 (*.emp)")
             if path == "":
                 self.ignore_profile_signals = False
                 return
 
             try:
-                with open(path, "r") as file:
+                with open(path, "r", encoding="utf-8") as file:
                     profile = dict(json.load(file))
                     profile_id = profile["id"]
                     if Config().is_profile(profile_id):
-                        overwrite_profile_dialog = ConfirmDialog("This will overwrite an existing profile. Are you "
-                                                                 "sure you want to import?")
+                        overwrite_profile_dialog = ConfirmDialog("这将覆盖同名的现有配置方案，确定要导入吗？")
                         confirmation = overwrite_profile_dialog.exec()
                         if confirmation != QMessageBox.AcceptRole:
                             self.ignore_profile_signals = False
@@ -582,7 +576,7 @@ class PreferencesPage(QWidget):
 
                     Config().add_profile(profile)
             except:
-                self.show_preferences_page_save_error(f"Profile file ({path}) malformed.")
+                self.show_preferences_page_save_error(f"配置文件格式有误（{path}）。")
                 self.ignore_profile_signals = False
                 return
 
@@ -590,7 +584,7 @@ class PreferencesPage(QWidget):
             index = self.profileSelector.findText(profile_id)
             self.profileSelector.setCurrentIndex(index)
 
-            self.show_preferences_page_save_success(f"Profile: {profile_id} successfully imported.")
+            self.show_preferences_page_save_success(f"成功导入配置方案：{profile_id}")
             self.ignore_profile_signals = False
             self.switch_edit_profile()
 
@@ -617,14 +611,14 @@ class PreferencesPage(QWidget):
 
     def on_unlockable_select(self):
         num_selected = len(self.selected_widgets())
-        self.selectedLabel.setText(f"{num_selected} selected")
+        self.selectedLabel.setText(f"已选 {num_selected} 项")
 
         self.allCheckbox.setChecked(num_selected > 0)
         self.allCheckbox.setStyleSheet(StyleSheets.check_box_all
                                        if all([widget.checkBox.isChecked() for widget in
                                                [widget for widget in self.unlockableWidgets if widget.isVisible()]])
                                        else StyleSheets.check_box_some)
-        self.allCheckbox.setToolTip("Deselect All" if num_selected > 0 else "Select All")
+        self.allCheckbox.setToolTip("取消全选" if num_selected > 0 else "全选")
 
     def on_unlockable_select_all(self):
         checked = self.allCheckbox.isChecked() # whether checkbox is select all (T) or deselect all (F)
@@ -737,7 +731,7 @@ class PreferencesPage(QWidget):
         self.profileSaveRow.setObjectName("preferencesPageProfileSaveRow")
         self.profileSaveRowLayout = RowLayout(self.profileSaveRow, "preferencesPageProfileSaveRowLayout")
 
-        self.profileLabel = TextLabel(self.scrollAreaContent, "preferencesPageProfileLabel", "Preference Profile",
+        self.profileLabel = TextLabel(self.scrollAreaContent, "preferencesPageProfileLabel", "偏好配置方案",
                                       Font(12))
 
         self.profileSelector = Selector(self.profileSaveRow, "preferencesPageProfileSelector", QSize(350, 40),
@@ -752,41 +746,41 @@ class PreferencesPage(QWidget):
         self.profileSaveRow2.setObjectName("preferencesPageProfileSaveRow2")
         self.profileSaveRow2Layout = RowLayout(self.profileSaveRow2, "preferencesPageProfileSaveRow2Layout")
 
-        self.newProfileButton = Button(self.profileSaveRow2, "preferencesPageNewProfileButton", "New Profile",
+        self.newProfileButton = Button(self.profileSaveRow2, "preferencesPageNewProfileButton", "新建配置",
                                        QSize(95, 35))
         self.newProfileButton.clicked.connect(self.new_profile)
 
-        self.saveButton = Button(self.profileSaveRow2, "preferencesPageSaveButton", "Save", QSize(60, 35))
+        self.saveButton = Button(self.profileSaveRow2, "preferencesPageSaveButton", "保存", QSize(70, 35))
         self.saveButton.clicked.connect(self.save_profile)
 
-        self.saveAsButton = Button(self.profileSaveRow2, "preferencesPageSaveAsButton", "Save As", QSize(80, 35))
+        self.saveAsButton = Button(self.profileSaveRow2, "preferencesPageSaveAsButton", "另存为", QSize(85, 35))
         self.saveAsButton.clicked.connect(self.save_as_profile)
 
-        self.renameButton = Button(self.profileSaveRow2, "preferencesPageRenameButton", "Save and Rename",
-                                   QSize(130, 35))
+        self.renameButton = Button(self.profileSaveRow2, "preferencesPageRenameButton", "保存并重命名",
+                                   QSize(120, 35))
         self.renameButton.clicked.connect(self.rename_profile)
 
-        self.deleteButton = Button(self.profileSaveRow2, "preferencesPageDeleteButton", "Delete", QSize(70, 35))
+        self.deleteButton = Button(self.profileSaveRow2, "preferencesPageDeleteButton", "删除", QSize(70, 35))
         self.deleteButton.clicked.connect(self.delete_profile)
 
         self.profileExchangeRow = QWidget(self.scrollAreaContent)
         self.profileExchangeRow.setObjectName("preferencesPageProfileExchangeRow")
         self.profileExchangeRowLayout = RowLayout(self.profileExchangeRow, "preferencesPageProfileExchangeRowLayout")
 
-        self.exportButton = Button(self.profileExchangeRow, "preferencesExportButton", "Export Profile to File",
-                                   QSize(150, 35))
+        self.exportButton = Button(self.profileExchangeRow, "preferencesExportButton", "导出配置到文件",
+                                   QSize(140, 35))
         self.exportButton.clicked.connect(self.export_profile)
 
-        self.importButton = Button(self.profileExchangeRow, "preferencesPageImportButton", "Import Profile from File",
-                                   QSize(165, 35))
+        self.importButton = Button(self.profileExchangeRow, "preferencesPageImportButton", "从文件导入配置",
+                                   QSize(140, 35))
         self.importButton.clicked.connect(self.import_profile)
 
         self.openExportsButton = Button(self.profileExchangeRow, "preferencesPageOpenExportsButton",
-                                        "Open Folder to Exported Profiles", QSize(220, 35))
+                                        "打开导出文件夹", QSize(140, 35))
         self.openExportsButton.clicked.connect(self.open_exports_folder)
 
         self.profileNotes = MultiLineTextInputBox(self.scrollAreaContent, "preferencesPageProfileNotes",
-                                                  565, 125, 250, "Notes for this profile")
+                                                  565, 125, 250, "此配置方案的备注说明")
         self.profileNotes.setPlainText(Config().notes_by_id(self.get_edit_profile(), self.profileSelectorIsBundled))
 
         # filters
@@ -798,15 +792,15 @@ class PreferencesPage(QWidget):
         self.searchSortRow.setObjectName("preferencesPageSearchSortRow")
         self.searchSortRowLayout = RowLayout(self.searchSortRow, "preferencesPageSearchSortRowLayout")
 
-        self.searchBar = TextInputBox(self.searchSortRow, "preferencesPageSearchBar", QSize(250, 40), "Search by name")
+        self.searchBar = TextInputBox(self.searchSortRow, "preferencesPageSearchBar", QSize(260, 40), "按中文或英文名称搜索")
         self.searchBar.textEdited.connect(self.replace_unlockable_widgets)
-        self.sortLabel = TextLabel(self.searchSortRow, "preferencesPageSortLabel", "Sort by")
-        self.sortSelector = Selector(self.searchSortRow, "preferencesPageSortSelector", QSize(120, 40),
-                                     Data.get_sorts())
+        self.sortLabel = TextLabel(self.searchSortRow, "preferencesPageSortLabel", "排序方式")
+        self.sortSelector = Selector(self.searchSortRow, "preferencesPageSortSelector", QSize(140, 40),
+                                     [(Data.get_sort_label(s), s) for s in Data.get_sorts()])
         self.sortSelector.currentIndexChanged.connect(self.replace_unlockable_widgets)
         self.lastSortedBy = "name" # cache of last sort
 
-        self.refreshIconsButton = Button(self.scrollAreaContent, "preferencesPageRefreshIconsButton", "Refresh Icons",
+        self.refreshIconsButton = Button(self.scrollAreaContent, "preferencesPageRefreshIconsButton", "刷新图标",
                                          QSize(105, 35))
         self.refreshIconsButton.clicked.connect(self.refresh_unlockables)
 
@@ -831,8 +825,8 @@ class PreferencesPage(QWidget):
 
         self.allCheckbox = CheckBoxWithFunction(self.persistentBar, "preferencesPageAllCheckbox",
                                                 self.on_unlockable_select_all, style_sheet=StyleSheets.check_box_all)
-        self.allCheckbox.setToolTip("Select All")
-        self.selectedLabel = TextLabel(self.persistentBar, "preferencesPageSelectedLabel", "0 selected")
+        self.allCheckbox.setToolTip("全选")
+        self.selectedLabel = TextLabel(self.persistentBar, "preferencesPageSelectedLabel", "已选 0 项")
         # TODO to the right, confirmation text like with saving
 
         # edit dropdown
@@ -849,7 +843,7 @@ class PreferencesPage(QWidget):
         self.editDropdownButton.setChecked(False)
         self.editDropdownButton.setFont(Font(10))
         self.editDropdownButton.setStyleSheet(StyleSheets.collapsible_box_inactive)
-        self.editDropdownButton.setText("Edit Selected")
+        self.editDropdownButton.setText("批量编辑选中项")
         self.editDropdownButton.setIcon(QIcon(Icons.right_arrow))
         self.editDropdownButton.setIconSize(QSize(20, 20))
         self.editDropdownButton.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
@@ -882,10 +876,10 @@ class PreferencesPage(QWidget):
                                                                     "preferencesPageEditDropdownContentTierCheckBox",
                                                                     self.on_edit_dropdown_tier)
         self.editDropdownContentTierLabel = TextLabel(self.editDropdownContentTierRow,
-                                                      "preferencesPageEditDropdownContentTierLabel", "Tier")
+                                                      "preferencesPageEditDropdownContentTierLabel", "层级")
         self.editDropdownContentTierInput = TextInputBox(self.editDropdownContentTierRow,
                                                          "preferencesPageEditDropdownContentTierInput", QSize(110, 40),
-                                                         "Enter tier", "0", style_sheet=StyleSheets.text_box_read_only)
+                                                         "输入层级", "0", style_sheet=StyleSheets.text_box_read_only)
         self.editDropdownContentTierInput.textEdited.connect(self.on_edit_dropdown_tier_input)
         self.editDropdownContentTierInput.setReadOnly(True)
 
@@ -899,10 +893,10 @@ class PreferencesPage(QWidget):
                                                                        self.on_edit_dropdown_subtier)
         self.editDropdownContentSubtierLabel = TextLabel(self.editDropdownContentSubtierRow,
                                                          "preferencesPageEditDropdownContentSubtierLabel",
-                                                         "Subtier")
+                                                         "子层级")
         self.editDropdownContentSubtierInput = TextInputBox(self.editDropdownContentSubtierRow,
                                                             "preferencesPageEditDropdownContentSubtierInput",
-                                                            QSize(110, 40), "Enter subtier", "0",
+                                                            QSize(110, 40), "输入子层级", "0",
                                                             style_sheet=StyleSheets.text_box_read_only)
         self.editDropdownContentSubtierInput.textEdited.connect(self.on_edit_dropdown_subtier_input)
         self.editDropdownContentSubtierInput.setReadOnly(True)
@@ -914,12 +908,12 @@ class PreferencesPage(QWidget):
 
         self.editDropdownContentApplyButton = Button(self.editDropdownContentApplyRow,
                                                      "preferencesPageEditDropdownContentApplyButton",
-                                                     "Apply", QSize(70, 35))
+                                                     "应用", QSize(75, 35))
         self.editDropdownContentApplyButton.clicked.connect(self.on_edit_dropdown_apply)
 
         self.editDropdownContentCancelButton = Button(self.editDropdownContentApplyRow,
                                                       "preferencesPageEditDropdownContentCancelButton",
-                                                      "Cancel", QSize(70, 35))
+                                                      "取消", QSize(75, 35))
         self.editDropdownContentCancelButton.clicked.connect(self.on_edit_dropdown_minimise)
 
         """
